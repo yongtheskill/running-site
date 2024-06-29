@@ -4,13 +4,16 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev:local": "nuxt dev",
+    "dev": "nuxt dev --port 443 --host 0.0.0.0 --https --https.cert 'C:/Certbot/live/run.yong.ee/cert.pem' --https.key 'C:/Certbot/live/run.yong.ee/privkey.pem'",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
     "argon2": "^0.40.3",
+    "fast-xml-parser": "^4.4.0",
+    "luxon": "^3.4.4",
     "nuxt": "^3.12.2",
     "ol": "^9.2.4",
     "ol-contextmenu": "^5.4.0",
@@ -19,6 +22,7 @@
     "vue3-openlayers": "^10.0.1"
   },
   "devDependencies": {
-    "@nuxtjs/tailwindcss": "^6.12.0"
+    "@nuxtjs/tailwindcss": "^6.12.0",
+    "@types/luxon": "^3.4.2"
   }
 }

@@ -10,10 +10,10 @@
                 Map
               </div>
             </NuxtLink>
-            <NuxtLink to="/upload" class="w-full">
+            <NuxtLink to="/runs" class="w-full">
               <div
                 class="h-10 flex items-center hover:bg-gray-800 rounded-lg px-3 py-2 transition-all duration-150">
-                Upload
+                Runs
               </div>
             </NuxtLink>
           </nav>
@@ -24,11 +24,7 @@
       </div>
     </header>
     <main class="flex-grow">
-      <div class="py-4 pr-4 h-full">
-        <div class="bg-gray-900 rounded-2xl h-full overflow-hidden relative">
-          <NuxtPage />
-        </div>
-      </div>
+      <NuxtPage />
     </main>
   </div>
 </template>

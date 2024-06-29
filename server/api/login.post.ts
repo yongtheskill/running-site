@@ -21,5 +21,3 @@ export default defineEventHandler(
     return { success: true, token: sessionResult[0].id };
   }
 );
-
-// 5bbe87aa-6981-41c7-aad8-d4f75bdb8f54

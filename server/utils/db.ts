@@ -6,6 +6,6 @@ export const sql = postgres({
   database: process.env.PGDATABASE,
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,
-  ssl: true,
-  max: 1,
+  ssl: process.env.SSL != 'false',
+  max: 5,
 }); // will use psql environment variables

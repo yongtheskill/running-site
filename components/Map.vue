@@ -5,9 +5,9 @@
       :rotation="rotation"
       :zoom="zoom"
       :projection="projection"
-      ref="mapView" />
+      ref="mapViewRef" />
     <ol-tile-layer>
-      <ol-source-xyz url="http://mt{0-3}.googleapis.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga" />
+      <ol-source-xyz url="https://mt{0-3}.googleapis.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga" />
     </ol-tile-layer>
 
     <ol-heatmap-layer :maxZoom="12" :blur="30" :radius="10" :weight="getHeatmapWeight">
@@ -24,6 +24,8 @@
       <ol-style :overrideStyleFunction="styleRoads"> </ol-style>
     </ol-vector-tile-layer>
 
+    <RunRouteLayer v-if="runData != undefined" :run-id="runData.runId" />
+
     <MapCurrentLocation :current-location="currentLocation" />
   </ol-map>
   <div class="absolute bottom-0 right-0 px-5 py-3">
@@ -39,7 +41,24 @@
 import type { FeatureLike } from 'ol/Feature';
 import { Stroke, type Style } from 'ol/style';
 import type { View } from 'ol';
-const mapView = ref<View>();
+import RunRouteLayer from './map/RunRouteLayer.vue';
+const mapViewRef = ref<{ view: View }>();
+
+const props = defineProps<{
+  runData?: { runId: number; bbox: [number, number, number, number] };
+}>();
+
+watch(
+  () => props.runData,
+  () => {
+    if (props.runData != undefined) {
+      mapViewRef.value?.view.fit(props.runData.bbox, {
+        padding: [80, 80, 80, 80],
+        duration: 500,
+      });
+    }
+  }
+);
 
 const userId = 1;
 
@@ -49,20 +68,24 @@ if (navigator.geolocation) {
     const latitude = position.coords.latitude;
     const longitude = position.coords.longitude;
     const coords = epsg4326to3875([longitude, latitude]);
-
-    center.value = coords;
     currentLocation.value = coords;
+    if (props.runData == undefined) {
+      mapViewRef.value?.view.animate({
+        center: coords,
+        duration: 200,
+      });
+    }
   });
 }
 
 const centralise = () => {
-  zoom.value = 16;
-  rotation.value = 0;
-  mapView.value?.setZoom(zoom.value);
-  mapView.value?.setRotation(rotation.value);
   if (currentLocation.value != null) {
-    center.value = currentLocation.value;
-    mapView.value?.setCenter(center.value);
+    mapViewRef.value?.view.animate({
+      zoom: 16,
+      rotation: 0,
+      center: currentLocation.value,
+      duration: 500,
+    });
   }
 };
 
@@ -74,9 +97,12 @@ const rotation = ref(0);
 const styleRoads = (feature: FeatureLike, style: Style) => {
   const visited = feature.get('visited');
 
+  const visitedColour = props.runData == undefined ? '#22d3ee99' : '#22d3ee33';
+  const unvisitedColour = props.runData == undefined ? '#dc262688' : '#dc262633';
+
   style.setStroke(
     new Stroke({
-      color: visited ? '#22d3ee99' : '#dc262688',
+      color: visited ? visitedColour : unvisitedColour,
       width: visited ? 1 : 2,
     })
   );
@@ -101,10 +127,8 @@ const getRoadTileUrl = (
   resolution: number,
   projection: any
 ): string => {
-  console.log('GETTING TILE');
   const bbox = tileTobbox(z, x, y);
   const url = `/api/roads?bbox=${bbox.join(',')}&user=${userId}`;
-  console.log(url);
   return url;
 };
 
