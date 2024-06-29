@@ -2,13 +2,21 @@
   <div class="py-4 pr-4 h-full">
     <div class="bg-gray-900 rounded-2xl h-full overflow-hidden relative px-9 py-6">
       <div v-if="authState != null">
-        <div class="text-4xl font-bold pb-6">Hello, {{ authState.username }}</div>
-        <button
-          class="bg-red-600 rounded-xl font-bold px-12 py-2"
-          @click="() => logout()"
-          :disabled="loading">
-          Log out
-        </button>
+        <div class="text-4xl font-bold pb-8">Hello, {{ authState.username }}</div>
+        <div class="flex flex-col w-52 gap-y-8">
+          <button
+            class="bg-green-600 rounded-xl font-bold px-5 py-2"
+            @click="() => shareMap()"
+            :disabled="loading">
+            {{ showShared ? 'Copied!' : 'Share My Map' }}
+          </button>
+          <button
+            class="bg-red-600 rounded-xl font-bold px-5 py-2"
+            @click="() => logout()"
+            :disabled="loading">
+            Log out
+          </button>
+        </div>
       </div>
       <div v-else class="h-full flex items-center justify-center">
         <div class="flex flex-col items-center pb-5">
@@ -52,6 +60,7 @@
         </div>
       </div>
     </div>
+    <input type="text" id="inputToCopy" class="hidden" />
   </div>
 </template>
 
@@ -59,19 +68,37 @@
 const authState = useAuthState();
 
 const loading = ref(false);
+const showShared = ref(false);
 
 const username = ref('');
 const password = ref('');
 const loginError = ref('');
+
+const shareMap = async () => {
+  showShared.value = true;
+
+  // Get the text field
+  var copyText = document.getElementById('inputToCopy') as HTMLInputElement;
+
+  copyText.value = 'https://run.yong.ee/map/' + authState.value?.id ?? '-1';
+
+  // Select the text field
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); // For mobile devices
+
+  // Copy the text inside the text field
+  navigator.clipboard.writeText(copyText.value);
+
+  setTimeout(() => {
+    showShared.value = false;
+  }, 2000);
+};
 
 const logout = async () => {
   loading.value = true;
   if (authState.value == null) return;
   await $fetch('/api/logout', {
     method: 'POST',
-    body: {
-      session: authState.value.session,
-    },
     headers: authState.value != null ? { Authorization: authState.value.session } : {},
   });
   authState.value = null;

@@ -58,7 +58,6 @@ const { data } = await useFetch<
     duration: number;
   }[]
 >('/api/myRuns', {
-  params: { session: authState.value?.session },
   headers: authState.value != null ? { Authorization: authState.value.session } : {},
 });
 

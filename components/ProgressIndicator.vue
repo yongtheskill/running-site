@@ -37,5 +37,11 @@
 </template>
 
 <script setup lang="ts">
-const { data: progress } = await useFetch('/api/completion', { params: { user: 1 } });
+const props = defineProps<{
+  userId: number;
+}>();
+
+const { data: progress, refresh } = await useFetch('/api/completion', {
+  params: { user: props.userId },
+});
 </script>

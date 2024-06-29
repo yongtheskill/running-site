@@ -16,7 +16,7 @@
             </div>
           </nav>
           <div class="pb-6">
-            <ProgressIndicator />
+            <ProgressIndicator v-if="authState != null" :user-id="authState.id" />
           </div>
         </div>
       </div>

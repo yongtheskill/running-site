@@ -6,6 +6,7 @@
     "build": "nuxt build",
     "dev:local": "nuxt dev",
     "dev": "nuxt dev --port 443 --host 0.0.0.0 --https --https.cert 'C:/Certbot/live/run.yong.ee/cert.pem' --https.key 'C:/Certbot/live/run.yong.ee/privkey.pem'",
+    "serve": "bun ./server.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
