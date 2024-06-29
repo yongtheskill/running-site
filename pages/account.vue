@@ -80,7 +80,7 @@ const shareMap = async () => {
   // Get the text field
   var copyText = document.getElementById('inputToCopy') as HTMLInputElement;
 
-  copyText.value = 'https://run.yong.ee/map/' + authState.value?.id ?? '-1';
+  copyText.value = 'https://run.yong.ee/map/' + authState.value?.id;
 
   // Select the text field
   copyText.select();
