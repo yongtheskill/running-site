@@ -2,7 +2,15 @@ import { sql } from '../utils/db.js';
 import argon2 from 'argon2';
 
 export default defineEventHandler(
-  async (event): Promise<{ success: boolean; error?: string; token?: string }> => {
+  async (
+    event
+  ): Promise<{
+    success: boolean;
+    error?: string;
+    token?: string;
+    id?: number;
+    username?: string;
+  }> => {
     const body = await readBody(event);
     if (body.username == null || typeof body.username !== 'string')
       return { success: false, error: 'username required' };
@@ -18,6 +26,6 @@ export default defineEventHandler(
 
     const sessionResult =
       await sql`INSERT INTO sessions (user_id) VALUES (${user.id}) RETURNING id`;
-    return { success: true, token: sessionResult[0].id };
+    return { success: true, token: sessionResult[0].id, id: user.id, username: body.username };
   }
 );

@@ -1,13 +1,14 @@
 <template>
   <div class="flex h-full">
     <div class="py-4 pr-4 w-96">
-      <div class="bg-gray-900 rounded-2xl h-full overflow-hidden relative">
+      <div class="bg-gray-900 rounded-2xl h-full overflow-hidden overflow-y-auto relative">
         <div class="py-5 px-5">
           <h1 class="text-2xl font-bold pb-2 px-4">My Runs</h1>
           <div
             v-for="run in data"
             :key="run.id"
-            class="py-4 flex justify-between items-center border-b border-gray-800 hover:bg-gray-800 px-4 cursor-pointer"
+            class="py-4 flex justify-between items-center border-b border-gray-800 hover:bg-gray-700 px-4 cursor-pointer transition-all"
+            :class="{ 'bg-gray-800': selectedRun == run.id }"
             @click="selectedRun = run.id">
             <div class="flex justify-between items-center flex-grow">
               <div>
@@ -47,6 +48,8 @@
 
 <script setup lang="ts">
 import { DateTime } from 'luxon';
+const authState = useAuthState();
+
 const { data } = await useFetch<
   {
     id: number;
@@ -54,7 +57,10 @@ const { data } = await useFetch<
     distance: string;
     duration: number;
   }[]
->('/api/myRuns', { params: { user: 1 } });
+>('/api/myRuns', {
+  params: { session: authState.value?.session },
+  headers: authState.value != null ? { Authorization: authState.value.session } : {},
+});
 
 const selectedRun = ref<null | number>(null);
 </script>

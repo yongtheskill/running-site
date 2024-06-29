@@ -11,7 +11,10 @@
     </ol-tile-layer>
 
     <ol-heatmap-layer :maxZoom="12" :blur="30" :radius="10" :weight="getHeatmapWeight">
-      <ol-source-vector :url="`/api/heatmap?user=${1}`" :format="GeoJSON" :projection="projection">
+      <ol-source-vector
+        :url="`/api/heatmap?user=${props.userId ?? -1}`"
+        :format="GeoJSON"
+        :projection="projection">
       </ol-source-vector>
     </ol-heatmap-layer>
 
@@ -38,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+const authState = useAuthState();
 import type { FeatureLike } from 'ol/Feature';
 import { Stroke, type Style } from 'ol/style';
 import type { View } from 'ol';
@@ -46,6 +50,7 @@ const mapViewRef = ref<{ view: View }>();
 
 const props = defineProps<{
   runData?: { runId: number; bbox: [number, number, number, number] };
+  userId?: number;
 }>();
 
 watch(
@@ -59,8 +64,6 @@ watch(
     }
   }
 );
-
-const userId = 1;
 
 const currentLocation = ref<null | [number, number]>(null);
 if (navigator.geolocation) {
@@ -97,8 +100,8 @@ const rotation = ref(0);
 const styleRoads = (feature: FeatureLike, style: Style) => {
   const visited = feature.get('visited');
 
-  const visitedColour = props.runData == undefined ? '#22d3ee99' : '#22d3ee33';
-  const unvisitedColour = props.runData == undefined ? '#dc262688' : '#dc262633';
+  const visitedColour = props.runData == undefined ? '#22d3ee99' : '#22d3ee88';
+  const unvisitedColour = props.runData == undefined ? '#dc262688' : '#dc262644';
 
   style.setStroke(
     new Stroke({
@@ -113,22 +116,13 @@ const getHeatmapWeight = (feature: any) => {
   return parseInt(feature.get('count')) / 120;
 };
 
-const getRoadsUrl = (
-  extent: [number, number, number, number],
-  resolution: number,
-  projection: any
-) => {
-  const url = `/api/roads?bbox=${extent.join(',')}&user=${userId}`;
-  return url;
-};
-
 const getRoadTileUrl = (
   [z, x, y]: [number, number, number],
   resolution: number,
   projection: any
 ): string => {
   const bbox = tileTobbox(z, x, y);
-  const url = `/api/roads?bbox=${bbox.join(',')}&user=${userId}`;
+  const url = `/api/roads?bbox=${bbox.join(',')}&user=${props.userId ?? -1}`;
   return url;
 };
 

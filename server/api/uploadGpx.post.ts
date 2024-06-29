@@ -1,5 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 import { sql } from '../utils/db.js';
+import { getLoggedInUser } from '../utils/auth.js';
 
 const visitRadius = 10;
 
@@ -8,12 +9,11 @@ export default defineEventHandler(async (event) => {
   if (formData == undefined) return 'no data received';
 
   // verify session
-  const sessionData = formData.find((formItem) => formItem.name == 'session');
-  if (sessionData == undefined) return 'please log in';
-  const session = sessionData.data.toString();
-  const sessionResult = await sql`SELECT user_id FROM sessions WHERE id = ${session}`;
-  if (sessionResult.length === 0) return 'please log in';
-  const userId = sessionResult[0].user_id;
+  const userId = await getLoggedInUser(event);
+  if (userId == null) {
+    setResponseStatus(event, 401);
+    return 'unauthorized';
+  }
 
   // handle data
   const gpxData = formData.find((formItem) => formItem.name == 'file');
@@ -41,7 +41,6 @@ export default defineEventHandler(async (event) => {
   const elevationGain = exerciseInfo['elevationgain'];
 
   // route
-  console.log(points);
   const wktPoints = points
     .map((point) => {
       const lat = parseFloat(point.___lat);
@@ -50,7 +49,6 @@ export default defineEventHandler(async (event) => {
     })
     .join(',');
   const routeWkt = `LINESTRING(${wktPoints})`;
-  console.log(routeWkt);
 
   await sql.begin(async (sql) => {
     // insert run
@@ -60,7 +58,7 @@ export default defineEventHandler(async (event) => {
 
     // update visited roads
     await sql`INSERT INTO visited_roads (visited_by, road_gid, run_id)
-        ((WITH current_route (route,radius) as (values((SELECT ST_Transform(route,3857) FROM runs WHERE id = ${newRun.id}), ${visitRadius}))
+        ((WITH current_route (route,radius) as (values((SELECT ST_Transform(route,3857) FROM runs WHERE id = ${newRun.id}), ${visitRadius}::INT))
         SELECT ${userId}, gid, ${newRun.id} FROM roads, current_route WHERE
         ST_Distance(route, ST_Transform(ST_LineInterpolatePoint(geom, 0.2),3857)) < radius
         AND ST_Distance(route, ST_Transform(ST_LineInterpolatePoint(geom, 0.5),3857)) < radius
