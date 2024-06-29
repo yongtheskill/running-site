@@ -8,8 +8,9 @@ export default defineEventHandler(async (event) => {
   if (query.user == null || typeof query.user !== 'string') return 'user required';
   const userId = parseInt(query.user);
 
-  const result =
-    await sql`SELECT jsonb_build_object('type','FeatureCollection', 'features',jsonb_agg(roadjson)) as geojson FROM
+  try {
+    const result =
+      await sql`SELECT jsonb_build_object('type','FeatureCollection', 'features',jsonb_agg(roadjson)) as geojson FROM
 (SELECT jsonb_build_object(
 'type','Feature',
 'id',road.gid,
@@ -18,7 +19,12 @@ export default defineEventHandler(async (event) => {
 FROM (SELECT * FROM roads 
 LEFT JOIN visited_roads ON (visited_roads.road_gid = roads.gid AND visited_roads.visited_by = ${userId})
 WHERE geom && ST_Transform(ST_MakeEnvelope(${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]},3857),4326)) road)`;
-  return result[0].geojson;
+    return result[0].geojson;
+  } catch (e) {
+    console.log('ROAD QUERY ERROR');
+    console.error(e);
+    return 'error';
+  }
 });
 
 /*

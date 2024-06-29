@@ -10,20 +10,19 @@
       <ol-source-xyz url="http://mt{0-3}.googleapis.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga" />
     </ol-tile-layer>
 
-    <ol-heatmap-layer :maxZoom="14" :blur="40" :radius="30" :weight="getHeatmapWeight">
+    <ol-heatmap-layer :maxZoom="12" :blur="30" :radius="10" :weight="getHeatmapWeight">
       <ol-source-vector :url="`/api/heatmap?user=${1}`" :format="GeoJSON" :projection="projection">
       </ol-source-vector>
     </ol-heatmap-layer>
 
-    <ol-vector-layer :minZoom="14">
-      <ol-source-vector
-        :url="getRoadsUrl"
-        :strategy="bbox"
+    <ol-vector-tile-layer :minZoom="12">
+      <ol-source-vector-tile
+        :tileUrlFunction="getRoadTileUrl"
         :format="GeoJSON"
         :projection="projection">
-      </ol-source-vector>
+      </ol-source-vector-tile>
       <ol-style :overrideStyleFunction="styleRoads"> </ol-style>
-    </ol-vector-layer>
+    </ol-vector-tile-layer>
 
     <MapCurrentLocation :current-location="currentLocation" />
   </ol-map>
@@ -97,10 +96,23 @@ const getRoadsUrl = (
   return url;
 };
 
+const getRoadTileUrl = (
+  [z, x, y]: [number, number, number],
+  resolution: number,
+  projection: any
+): string => {
+  console.log('GETTING TILE');
+  const bbox = tileTobbox(z, x, y);
+  const url = `/api/roads?bbox=${bbox.join(',')}&user=${userId}`;
+  console.log(url);
+  return url;
+};
+
 const strategy = inject('ol-loadingstrategy');
 const bbox = strategy.bbox;
 const format = inject('ol-format');
 const GeoJSON = new format.GeoJSON();
+const mvtFormat = new format.MVT();
 </script>
 
 <style scoped>
